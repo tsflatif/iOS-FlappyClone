@@ -9,32 +9,54 @@
 import SpriteKit
 import GameplayKit
 
+struct PhysicsCategory {
+    static let Ghost : UInt32 = 0x1 << 1
+    static let Ground : UInt32 = 0x1 << 2
+    static let Wall : UInt32 = 0x1 << 3
+}
+
 class GameScene: SKScene {
     
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
     
+    var Ground = SKSpriteNode()
+    var Ghost = SKSpriteNode()
+    
     override func didMove(to view: SKView) {
         
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
-        }
+        Ground = SKSpriteNode(imageNamed: "Ground")
+        Ground.setScale(0.7)
+        Ground.position = CGPoint(x: self.frame.width / 2, y: 0 + Ground.frame.height / 2)
         
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
+        Ground.physicsBody = SKPhysicsBody(rectangleOf: Ground.size)
+        Ground.physicsBody?.categoryBitMask = PhysicsCategory.Ground
+        Ground.physicsBody?.collisionBitMask = PhysicsCategory.Ghost
+        Ground.physicsBody?.contactTestBitMask = PhysicsCategory.Ghost
+        Ground.physicsBody?.affectedByGravity = false
+        Ground.physicsBody?.isDynamic = false
         
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
-            
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(M_PI), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
-        }
+        Ground.zPosition = 3
+        
+        self.addChild(Ground)
+        
+        Ghost = SKSpriteNode(imageNamed: "Ghost")
+        Ghost.size = CGSize(width: 60, height: 70)
+        Ghost.position = CGPoint(x: self.frame.width / 2 - Ghost.frame.width, y: self.frame.height / 2)
+        
+        Ghost.physicsBody = SKPhysicsBody(circleOfRadius: Ghost.frame.height/2)
+        Ghost.physicsBody?.categoryBitMask = PhysicsCategory.Ghost
+        Ghost.physicsBody?.collisionBitMask = PhysicsCategory.Ground | PhysicsCategory.Wall
+        Ghost.physicsBody?.contactTestBitMask = PhysicsCategory.Ground | PhysicsCategory.Wall
+        Ghost.physicsBody?.affectedByGravity = true
+        Ghost.physicsBody?.isDynamic = true
+        
+        Ghost.zPosition = 2
+
+        
+        self.addChild(Ghost)
+        
+        createWalls()
     }
     
     
@@ -63,11 +85,9 @@ class GameScene: SKScene {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-        }
+        Ghost.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+        Ghost.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 90))
         
-        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -85,5 +105,42 @@ class GameScene: SKScene {
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
+    }
+    
+    func createWalls() {
+        let wallPair = SKNode()
+        let topWall = SKSpriteNode(imageNamed: "Wall")
+        let btmWall = SKSpriteNode(imageNamed: "Wall")
+        
+        topWall.position = CGPoint(x: self.frame.width/2, y: self.frame.height/2 + 400)
+        btmWall.position = CGPoint(x: self.frame.width/2, y: self.frame.height/2 - 350)
+        
+        topWall.setScale(0.5)
+        btmWall.setScale(0.5)
+        
+        topWall.physicsBody = SKPhysicsBody(rectangleOf: topWall.size)
+        topWall.physicsBody?.categoryBitMask = PhysicsCategory.Wall
+        topWall.physicsBody?.collisionBitMask = PhysicsCategory.Ghost
+        topWall.physicsBody?.contactTestBitMask = PhysicsCategory.Ghost
+        topWall.physicsBody?.affectedByGravity = true
+        topWall.physicsBody?.isDynamic = true
+        
+        btmWall.physicsBody = SKPhysicsBody(rectangleOf: btmWall.size)
+        btmWall.physicsBody?.categoryBitMask = PhysicsCategory.Wall
+        btmWall.physicsBody?.collisionBitMask = PhysicsCategory.Ghost
+        btmWall.physicsBody?.contactTestBitMask = PhysicsCategory.Ghost
+        btmWall.physicsBody?.affectedByGravity = true
+        btmWall.physicsBody?.isDynamic = true
+
+        
+        topWall.zPosition = CGFloat(M_PI)
+        
+        wallPair.addChild(topWall)
+        wallPair.addChild(btmWall)
+        
+        wallPair.zPosition = 1
+        
+        self.addChild(wallPair)
+        
     }
 }
