@@ -23,6 +23,12 @@ class GameScene: SKScene {
     var Ground = SKSpriteNode()
     var Ghost = SKSpriteNode()
     
+    var wallPair = SKNode()
+
+    var moveAndRemove = SKAction()
+    
+    var gameStarted = Bool()
+    
     override func didMove(to view: SKView) {
         
         Ground = SKSpriteNode(imageNamed: "Ground")
@@ -48,17 +54,54 @@ class GameScene: SKScene {
         Ghost.physicsBody?.categoryBitMask = PhysicsCategory.Ghost
         Ghost.physicsBody?.collisionBitMask = PhysicsCategory.Ground | PhysicsCategory.Wall
         Ghost.physicsBody?.contactTestBitMask = PhysicsCategory.Ground | PhysicsCategory.Wall
-        Ghost.physicsBody?.affectedByGravity = true
+        Ghost.physicsBody?.affectedByGravity = false
         Ghost.physicsBody?.isDynamic = true
         
         Ghost.zPosition = 2
-
+        
         
         self.addChild(Ghost)
         
-        createWalls()
+        
+        
+        
     }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
+        if gameStarted == false {
+            
+            gameStarted = true
+            Ghost.physicsBody?.affectedByGravity = true
+            
+            let spawn = SKAction.run({
+                () in
+                self.createWalls()
+            })
+            
+            let delay = SKAction.wait(forDuration: 2.0)
+            let SpawnDelay = SKAction.sequence([spawn,delay])
+            let spawnDelayForever = SKAction.repeatForever(SpawnDelay)
+            self.run(spawnDelayForever)
+            
+            let distance = CGFloat(self.frame.width + wallPair.frame.width)
+            let movePipes = SKAction.move(by: CGVector(dx: -distance, dy: 0), duration: TimeInterval(0.01 * distance))
+            let removePipes = SKAction.removeFromParent()
+            
+            moveAndRemove = SKAction.sequence([movePipes, removePipes])
+            
+            Ghost.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+            Ghost.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 90))
+            
+        } else {
+            Ghost.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+            Ghost.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 90))
+
+        }
+        
+        
+        
+    }
     
     func touchDown(atPoint pos : CGPoint) {
         if let n = self.spinnyNode?.copy() as! SKShapeNode? {
@@ -84,12 +127,6 @@ class GameScene: SKScene {
         }
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        Ghost.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-        Ghost.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 90))
-        
-    }
-    
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
     }
@@ -108,7 +145,7 @@ class GameScene: SKScene {
     }
     
     func createWalls() {
-        let wallPair = SKNode()
+        wallPair = SKNode()
         let topWall = SKSpriteNode(imageNamed: "Wall")
         let btmWall = SKSpriteNode(imageNamed: "Wall")
         
@@ -139,6 +176,11 @@ class GameScene: SKScene {
         wallPair.addChild(btmWall)
         
         wallPair.zPosition = 1
+        
+        var randomPosition = CGFloat.random(min: -200, max: 200)
+        wallPair.position.y = wallPair.position.y + randomPosition
+        
+        wallPair.run(moveAndRemove)
         
         self.addChild(wallPair)
         
