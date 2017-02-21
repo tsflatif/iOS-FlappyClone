@@ -17,9 +17,6 @@ struct PhysicsCategory {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-    
-    
-    
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
     
@@ -27,11 +24,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var Ghost = SKSpriteNode()
     
     var wallPair = SKNode()
-
     var moveAndRemove = SKAction()
-    
     var gameStarted = Bool()
-    
     var score = Int()
     let scoreLbl = SKLabelNode()
     
@@ -56,7 +50,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             background.name = "background"
             background.size = (self.view?.bounds.size)!
             self.addChild(background)
-            
         }
         
         scoreLbl.position = CGPoint(x: self.frame.width / 2, y: self.frame.height / 2 + self.frame.height / 2.5)
@@ -75,7 +68,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         Ground.physicsBody?.contactTestBitMask = PhysicsCategory.Ghost
         Ground.physicsBody?.affectedByGravity = false
         Ground.physicsBody?.isDynamic = false
-        
         Ground.zPosition = 3
         
         self.addChild(Ground)
@@ -90,16 +82,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         Ghost.physicsBody?.contactTestBitMask = PhysicsCategory.Ground | PhysicsCategory.Wall | PhysicsCategory.Score
         Ghost.physicsBody?.affectedByGravity = false
         Ghost.physicsBody?.isDynamic = true
-        
         Ghost.zPosition = 2
-        
         
         self.addChild(Ghost)
     }
     
     override func didMove(to view: SKView) {
         createScene()
-        
     }
     
     func createBtn() {
@@ -138,7 +127,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 died = true
                 createBtn()
             }
-            
         }
         
         else if firstBody.categoryBitMask == PhysicsCategory.Ghost && secondBody.categoryBitMask == PhysicsCategory.Ground || firstBody.categoryBitMask == PhysicsCategory.Ground && secondBody.categoryBitMask == PhysicsCategory.Ghost {
@@ -151,7 +139,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 died = true
                 createBtn()
             }
-            
         }
     }
     
@@ -201,7 +188,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
             }
         }
-        
     }
     
     func touchDown(atPoint pos : CGPoint) {
@@ -304,7 +290,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         wallPair.zPosition = 1
         
-        var randomPosition = CGFloat.random(min: -200, max: 200)
+        let randomPosition = CGFloat.random(min: -200, max: 200)
         wallPair.position.y = wallPair.position.y + randomPosition
         wallPair.addChild(scoreNode)
         
